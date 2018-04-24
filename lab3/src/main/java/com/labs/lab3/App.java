@@ -8,11 +8,10 @@ public class App
 {
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
-        String myString = "(2*((3-2)+(5-3)))+(5*(3-7))";
-        String ar[] = myString.split("[\\(||\\)]");
-        int i = -1;
-        while (++i < ar.length)
-            System.out.println(ar[i]);
+
+        Parser p = new Parser();
+        System.out.println(p.Parse("A = [[5, 211, 5.36], [88.1, 7.4, 91.11], [4.2, -9.05, 58]]").toString());
+        System.out.println(p.Parse("A ^T").toString());
+
     }
 }
