@@ -44,7 +44,8 @@ public class Parser {
         }
         return s.charAt(0);
     }
-    public Matrix getVariable(Character variableName)
+
+    private Matrix getVariable(Character variableName)
     {
         if (!variables.containsKey(variableName)) {
             System.err.println( "Error: Try get unexists variable '"+variableName+"'" );
@@ -53,21 +54,104 @@ public class Parser {
         return variables.get(variableName);
     }
 
-
     private Result Plus(String s)
     {
         Result buffer = Mult(s);
+        if (buffer == null)
+            buffer = getMatrix(s);
         Matrix cur = buffer.current;
 
         while (buffer.rest.length() > 0) {
             if (!(buffer.rest.charAt(0) == ' ' && buffer.rest.charAt(1) == '+' && buffer.rest.charAt(2) == ' '))
                 break;
             String next = buffer.rest.substring(3);
-            buffer = getMatrix(next);
-            cur = cur.sum(buffer.current);
-            buffer.current = cur;
+            buffer = Mult(next);
+            if (buffer == null)
+                buffer = getMatrix(s);
+            buffer.current = cur.sum(buffer.current);
         }
         return new Result(buffer.current, buffer.rest);
+    }
+
+    private Result Mult(String s)
+    {
+            Result current = Bracket(s);
+            if (current == null)
+                current = getMatrix(s);
+            Matrix acc = current.current;
+            if (acc == null) return null;
+            while (true) {
+                if (current.rest.length() == 0) {
+                    return current;
+                }
+                current = Transposion(current);
+                acc = current.current;
+                if (current == null) return null;
+                if (current.rest.equals(""))
+                    return current;
+                current = ScalarMult(current);
+                acc = current.current;
+                if (current == null) return null;
+                if (current.rest.equals(""))
+                    return current;
+                if (!(current.rest.charAt(0) == ' ' && current.rest.charAt(1) == '*' && current.rest.charAt(2) == ' '))
+                    break;
+                String next = current.rest.substring(3);
+                current = Bracket(next);
+                if (current == null) return null;
+                current.current = acc.mult(current.current);
+            }
+            return current;
+    }
+
+    private Result Transposion(Result cur){
+        if (cur == null) return null;
+        if(cur.rest.length() == 0) return cur;
+        if(cur.rest.charAt(0) !=' ' || cur.rest.charAt(1) !='^' || cur.rest.charAt(2) !='T')
+            return cur;
+        cur.rest = cur.rest.substring(3);
+        cur.current = cur.current.transpose();
+        return cur;
+    }
+
+    private Result ScalarMult(Result cur){
+        if (cur == null) return null;
+        if(cur.rest.length() == 0) return cur;
+        if(cur.rest.charAt(0) !=' ' || cur.rest.charAt(1) !='*' || cur.rest.charAt(2) !=' ')
+            return cur;
+        Pattern regexp = Pattern.compile("-?([1-9]\\d*|\\d)(\\.\\d\\d?)?");
+        String buf = cur.rest.substring(3);
+        Matcher matcher = regexp.matcher(buf);
+        if (!matcher.lookingAt())
+            return cur;
+        String buffer = matcher.group();
+        Double k = Double.parseDouble(buffer);
+        cur.current = cur.current.mult(k);
+        cur.rest = buf.substring(buffer.length());
+        return cur;
+    }
+
+    private Result Bracket(String s)
+    {
+        char zeroChar = s.charAt(0);
+        if (zeroChar == '(') {
+            Result r = Plus(s.substring(1));;
+            if (!r.rest.isEmpty() && r.rest.charAt(0) == ')') {
+                r.rest = r.rest.substring(1);
+            } else {
+                System.err.println("Error: not close bracket");
+            }
+            return r;
+        }
+        return Variable(s);
+    }
+
+    private Result Variable(String s) {
+        if (Character.isLetter(s.charAt(0)) && s.length() == 1)
+            return new Result(getVariable(s.charAt(0)), "");
+        if (Character.isLetter(s.charAt(0)) && (s.charAt(1) == ' ') || s.charAt(1) == ' ') // если что-нибудь нашли
+            return new Result(getVariable(s.charAt(0)), s.substring(1));
+        return getMatrix(s);
     }
 
     private static double [][] getDoubleArray(String input){
@@ -107,79 +191,5 @@ public class Parser {
         if (matrix == null)
             return null;
         return new Result(new Matrix(matrix), restPart);
-    }
-
-    private Result Bracket(String s)
-    {
-        char zeroChar = s.charAt(0);
-        if (zeroChar == '(') {
-            Result r = Plus(s.substring(1));
-            if (!r.rest.isEmpty() && r.rest.charAt(0) == ')') {
-                r.rest = r.rest.substring(1);
-            } else {
-                System.err.println("Error: not close bracket");
-            }
-            return r;
-        }
-        return Variable(s);
-    }
-
-    private Result Variable(String s) {
-        if (Character.isLetter(s.charAt(0)) && s.charAt(1) == ' ')  { // если что-нибудь нашли
-                return new Result(getVariable(s.charAt(0)), s.substring(1));
-
-        }
-        return getMatrix(s);
-    }
-
-
-    private Result Mult(String s)
-    {
-            Result current = Bracket(s);
-            if (current == null)
-                current = getMatrix(s);
-            Matrix acc = current.current;
-            while (true) {
-                if (current.rest.length() == 0) {
-                    return current;
-                }
-                current = Transposion(current);
-                if (current.rest.equals(""))
-                    return current;
-                current = ScalarMult(current);
-                if (current.rest.equals(""))
-                    return current;
-                if (!(current.rest.charAt(0) == ' ' && current.rest.charAt(1) == '*' && current.rest.charAt(2) == ' '))
-                    break;
-                String next = current.rest.substring(3);
-                current = Bracket(next);
-                acc.mult(current.current);
-            }
-            return current;
-    }
-
-    private Result Transposion(Result cur){
-        if(cur.rest.length() == 0) return cur;
-        if(cur.rest.charAt(0) !=' ' || cur.rest.charAt(1) !='^' || cur.rest.charAt(2) !='T')
-            return cur;
-        cur.rest = cur.rest.substring(3);
-        cur.current = cur.current.transpose();
-        return cur;
-    }
-
-    private Result ScalarMult(Result cur){
-        if(cur.rest.length() == 0) return cur;
-        if(cur.rest.charAt(0) !=' ' || cur.rest.charAt(1) !='*' || cur.rest.charAt(2) !=' ')
-            return cur;
-        Pattern regexp = Pattern.compile("-?([1-9]\\d*|\\d)(\\.\\d\\d?)?");
-        cur.rest = cur.rest.substring(3);
-        Matcher matcher = regexp.matcher(cur.rest);
-        if (!matcher.lookingAt())
-            return cur;
-        String buffer = matcher.group();
-        Double k = Double.parseDouble(buffer);
-        cur.current = cur.current.mult(k);
-        cur.rest = cur.rest.substring(buffer.length());
-        return cur;
     }
 }

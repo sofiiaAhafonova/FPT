@@ -87,11 +87,19 @@ public class Matrix {
     
     public String toString(){
         StringBuilder matrixString = new StringBuilder();
+        matrixString.append("[");
         for (int i = 0; i < this.row; i++) {
-            for (int j = 0; j < this.col; j++)
-                matrixString.append(Math.round(this.matrix[i][j] * 100.0) / 100.0).append(" ");
-            matrixString.append("\n");
+            matrixString.append("[");
+            for (int j = 0; j < this.col; j++) {
+                matrixString.append(Math.round(this.matrix[i][j] * 100.0) / 100.0);
+                if (j < this.col - 1)
+                    matrixString.append(", ");
+            }
+            matrixString.append("]");
+            if (i < this.row - 1)
+                matrixString.append(", ");
         }
+        matrixString.append("]");
         return matrixString.toString();
     }
     

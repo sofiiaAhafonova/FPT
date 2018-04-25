@@ -1,5 +1,4 @@
 package com.labs.lab3;
-import java.util.regex.*;
 /**
  * Hello world!
  *
@@ -10,8 +9,11 @@ public class App
     {
 
         Parser p = new Parser();
-        System.out.println(p.Parse("A = [[5, 211, 5.36], [88.1, 7.4, 91.11], [4.2, -9.05, 58]]").toString());
-        System.out.println(p.Parse("A ^T").toString());
-
+        System.out.println(p.Parse("A = [[2], [-2], [1]] ^T * [[1], [1], [1]]").toString());
+        System.out.println(p.Parse("B = [[6, -1, -1]] * ([[6], [9], [-3]] + [[4], [-4], [0]])").toString());
+        System.out.println(p.Parse("A + B").toString());
+        System.out.println(p.Parse("A * B").toString());
+        System.out.println(p.Parse("C = [[6]] * 10").toString());
+        System.out.println(p.Parse("A * B + C").toString());
     }
 }
