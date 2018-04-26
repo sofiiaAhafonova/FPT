@@ -7,7 +7,6 @@ public class Parser {
 
     private static String MATRIX_REGEX = "^\\[(\\[-?([1-9]\\d*|\\d)(\\.\\d\\d?)?(,\\ -?([1-9]\\d*|\\d)(\\.\\d\\d?)?)*\\])(,\\ \\[-?([1-9]\\d*|\\d)*(\\.\\d\\d?)?(,\\ -?([1-9]\\d*|\\d)(\\.\\d\\d?)?)*\\])*\\]";
     private HashMap<Character, Matrix> variables;
-    private State state;
 
     public Parser()
     {
@@ -16,19 +15,19 @@ public class Parser {
 
     public Matrix Parse(String s)
     {
-
+        Result result;
         Character ch =  setVariable(s);
         if (ch != null)
             s = s.substring(4);
-        Result result = Plus(s);
-        if (result.current == null || !result.rest.isEmpty()) {
+        if ((result = Plus(s)) == null || result.current == null || !result.rest.isEmpty()) {
             System.err.println("Error: can't full parse");
-            System.err.println("rest: " + result.rest);
             return null;
         }
         if (ch != null){
-            if (variables.containsKey(ch))return
+            if (variables.containsKey(ch)) {
                 variables.replace(ch, result.current);
+                return variables.get(ch);
+            }
             else
                 variables.put(ch, result.current);
         }
@@ -38,10 +37,8 @@ public class Parser {
     private Character setVariable(String s){
         Pattern regexp = Pattern.compile("[ABC] = ");
         Matcher matcher = regexp.matcher(s);
-        if (!matcher.lookingAt()) {
-            state = State.NO_VARIABLES;
+        if (!matcher.lookingAt())
             return null;
-        }
         return s.charAt(0);
     }
 
@@ -56,45 +53,45 @@ public class Parser {
 
     private Result Plus(String s)
     {
-        Result buffer = Mult(s);
-        if (buffer == null)
-            buffer = getMatrix(s);
+        Result buffer = Multiplication(s);
+        if (buffer == null && (buffer = getMatrix(s)) == null)
+            return null;
         Matrix cur = buffer.current;
-
         while (buffer.rest.length() > 0) {
             if (!(buffer.rest.charAt(0) == ' ' && buffer.rest.charAt(1) == '+' && buffer.rest.charAt(2) == ' '))
                 break;
             String next = buffer.rest.substring(3);
-            buffer = Mult(next);
-            if (buffer == null)
-                buffer = getMatrix(s);
+            buffer = Multiplication(next);
+            if (buffer == null && (buffer = getMatrix(s)) == null)
+                return null;
             buffer.current = cur.sum(buffer.current);
         }
         return new Result(buffer.current, buffer.rest);
     }
 
-    private Result Mult(String s)
+    private Result Multiplication(String s)
     {
             Result current = Bracket(s);
-            if (current == null)
-                current = getMatrix(s);
+            if (current == null && (current = getMatrix(s)) == null)
+                return null;
             Matrix acc = current.current;
             if (acc == null) return null;
             while (true) {
-                if (current.rest.length() == 0) {
+            if (current.rest.length() == 0) {
                     return current;
                 }
-                current = Transposion(current);
-                acc = current.current;
+                current = Transposition(current);
                 if (current == null) return null;
+                acc = current.current;
                 if (current.rest.equals(""))
                     return current;
-                current = ScalarMult(current);
-                acc = current.current;
+                current = ScalarMultiplication(current);
                 if (current == null) return null;
+                acc = current.current;
                 if (current.rest.equals(""))
                     return current;
-                if (!(current.rest.charAt(0) == ' ' && current.rest.charAt(1) == '*' && current.rest.charAt(2) == ' '))
+                if (!(current.rest.charAt(0) == ' ' && current.rest.charAt(1) == '*'
+                        && current.rest.charAt(2) == ' '))
                     break;
                 String next = current.rest.substring(3);
                 current = Bracket(next);
@@ -104,7 +101,7 @@ public class Parser {
             return current;
     }
 
-    private Result Transposion(Result cur){
+    private Result Transposition(Result cur){
         if (cur == null) return null;
         if(cur.rest.length() == 0) return cur;
         if(cur.rest.charAt(0) !=' ' || cur.rest.charAt(1) !='^' || cur.rest.charAt(2) !='T')
@@ -114,7 +111,7 @@ public class Parser {
         return cur;
     }
 
-    private Result ScalarMult(Result cur){
+    private Result ScalarMultiplication(Result cur){
         if (cur == null) return null;
         if(cur.rest.length() == 0) return cur;
         if(cur.rest.charAt(0) !=' ' || cur.rest.charAt(1) !='*' || cur.rest.charAt(2) !=' ')
@@ -134,13 +131,14 @@ public class Parser {
     private Result Bracket(String s)
     {
         char zeroChar = s.charAt(0);
+        Result r;
         if (zeroChar == '(') {
-            Result r = Plus(s.substring(1));;
-            if (!r.rest.isEmpty() && r.rest.charAt(0) == ')') {
+            if ((r = Plus(s.substring(1))) == null)
+                return null;
+            if (!r.rest.isEmpty() && r.rest.charAt(0) == ')')
                 r.rest = r.rest.substring(1);
-            } else {
-                System.err.println("Error: not close bracket");
-            }
+            else
+                System.err.println("Error: no close bracket");
             return r;
         }
         return Variable(s);
@@ -190,6 +188,14 @@ public class Parser {
         double [][]matrix = getDoubleArray(buffer);
         if (matrix == null)
             return null;
-        return new Result(new Matrix(matrix), restPart);
+        Matrix m;
+        try {
+            m = new Matrix(matrix);
+        }
+        catch (Exception e){
+            System.err.println(e.getMessage());
+            return null;
+        }
+        return new Result(m, restPart);
     }
 }
