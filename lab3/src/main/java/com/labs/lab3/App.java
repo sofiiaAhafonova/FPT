@@ -15,7 +15,7 @@ public class App
         System.out.println(p.Parse("A * B").toString());
         System.out.println(p.Parse("C = [[6]] * 10").toString());
         System.out.println(p.Parse("A * B + C").toString());
-
-        System.out.println(p.Parse("C = [[6], [1]] * 10").toString());
+        System.out.println(p.Parse("[[6]] ^T * B").toString());
+        System.out.println(p.Parse("C = [[6], [1]] ^T * 10").toString());
     }
 }

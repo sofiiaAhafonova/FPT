@@ -54,15 +54,17 @@ public class Parser {
     private Result Plus(String s)
     {
         Result buffer = Multiplication(s);
-        if (buffer == null && (buffer = getMatrix(s)) == null)
+        if (buffer == null && (buffer = getMatrix(s)) == null || buffer.current == null)
             return null;
         Matrix cur = buffer.current;
         while (buffer.rest.length() > 0) {
+            if (buffer.rest.length() < 3)
+                return buffer;
             if (!(buffer.rest.charAt(0) == ' ' && buffer.rest.charAt(1) == '+' && buffer.rest.charAt(2) == ' '))
                 break;
             String next = buffer.rest.substring(3);
             buffer = Multiplication(next);
-            if (buffer == null && (buffer = getMatrix(s)) == null)
+            if (buffer == null && (buffer = getMatrix(s)) == null || buffer.current == null)
                 return null;
             buffer.current = cur.sum(buffer.current);
         }
@@ -90,6 +92,8 @@ public class Parser {
                 acc = current.current;
                 if (current.rest.equals(""))
                     return current;
+                if (current.rest.length() < 3)
+                    return current;
                 if (!(current.rest.charAt(0) == ' ' && current.rest.charAt(1) == '*'
                         && current.rest.charAt(2) == ' '))
                     break;
@@ -103,7 +107,7 @@ public class Parser {
 
     private Result Transposition(Result cur){
         if (cur == null) return null;
-        if(cur.rest.length() == 0) return cur;
+        if(cur.rest.length() < 3) return cur;
         if(cur.rest.charAt(0) !=' ' || cur.rest.charAt(1) !='^' || cur.rest.charAt(2) !='T')
             return cur;
         cur.rest = cur.rest.substring(3);
@@ -113,7 +117,7 @@ public class Parser {
 
     private Result ScalarMultiplication(Result cur){
         if (cur == null) return null;
-        if(cur.rest.length() == 0) return cur;
+        if(cur.rest.length() < 3) return cur;
         if(cur.rest.charAt(0) !=' ' || cur.rest.charAt(1) !='*' || cur.rest.charAt(2) !=' ')
             return cur;
         Pattern regexp = Pattern.compile("-?([1-9]\\d*|\\d)(\\.\\d\\d?)?");
@@ -147,13 +151,15 @@ public class Parser {
     private Result Variable(String s) {
         if (Character.isLetter(s.charAt(0)) && s.length() == 1)
             return new Result(getVariable(s.charAt(0)), "");
+        if (s.length() < 3)
+            return null;
         if (Character.isLetter(s.charAt(0)) && (s.charAt(1) == ' ') || s.charAt(1) == ' ') // если что-нибудь нашли
             return new Result(getVariable(s.charAt(0)), s.substring(1));
         return getMatrix(s);
     }
 
     private static double [][] getDoubleArray(String input){
-        String [] vector = input.split("[\\[||\\]]");
+        String [] vector = input.split("[\\[|\\]]");
         int counter = 0;
         for(String str: vector)
             if (str.length() != 0 && !str.equals(", "))
@@ -188,14 +194,6 @@ public class Parser {
         double [][]matrix = getDoubleArray(buffer);
         if (matrix == null)
             return null;
-        Matrix m;
-        try {
-            m = new Matrix(matrix);
-        }
-        catch (Exception e){
-            System.err.println(e.getMessage());
-            return null;
-        }
-        return new Result(m, restPart);
+        return new Result(new Matrix(matrix), restPart);
     }
 }
