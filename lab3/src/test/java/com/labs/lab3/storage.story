@@ -40,12 +40,11 @@ Scenario: Invalid title
 Given a new paser
 When I parse string <input>
 Then I should get <result>
-Then should be created var <varname> with value <result>
-
-|input                       |varname|result|
-|V = [[100]]                 |A      |null  |
-|S = [[0.32, -1.2, 32]]      |B      |null  |
-|D = [[-10.32, 0], [1.2, 32]]|C      |null  |
+Examples:
+|input                       |result|
+|V = [[100]]                 |null  |
+|S = [[0.32, -1.2, 32]]      |null  |
+|D = [[-10.32, 0], [1.2, 32]]|null  |
 
 
 
