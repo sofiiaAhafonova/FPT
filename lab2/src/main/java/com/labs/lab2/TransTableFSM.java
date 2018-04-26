@@ -21,8 +21,6 @@ public class TransTableFSM extends FSM {
     }
     private ArrayList <Holder> buildTransitionTable(){
         addTransition(State.q0, Event.PLUS, State.q1);
-        addTransition(State.q0, Event.DIGIT, State.ERROR);
-        addTransition(State.q0, Event.NON_DIGIT, State.ERROR);
         addTransition(State.q1, Event.PLUS, State.q2);
         addTransition(State.q1, Event.DIGIT, State.q4);
         addTransition(State.q1, Event.NON_DIGIT, State.q3);
@@ -30,11 +28,7 @@ public class TransTableFSM extends FSM {
         addTransition(State.q2, Event.NON_DIGIT, State.q3);
         addTransition(State.q2, Event.DIGIT, State.q4);
         addTransition(State.q3, Event.DIGIT, State.q4);
-        addTransition(State.q3, Event.PLUS, State.ERROR);
-        addTransition(State.q3, Event.NON_DIGIT, State.ERROR);
-        addTransition(State.q4, Event.PLUS, State.ERROR);
         addTransition(State.q4, Event.DIGIT, State.q4);
-        addTransition(State.q4, Event.NON_DIGIT, State.ERROR);
         return transitions;
     }
 }

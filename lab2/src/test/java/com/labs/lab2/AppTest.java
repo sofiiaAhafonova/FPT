@@ -13,10 +13,10 @@ import org.junit.jupiter.api.extension.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AppTest {
-    private static TransTableFSM machine;
+    private static StateFSM machine;
     @BeforeAll
     static void beforeAll(){
-        machine = new TransTableFSM();
+        machine = new StateFSM();
     }
     @DisplayName("Test for NON_DIGIT recognizeEvent)")
     @ParameterizedTest

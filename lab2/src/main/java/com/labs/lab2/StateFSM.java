@@ -29,18 +29,18 @@ public class StateFSM extends FSM {
     }
 }
 abstract class MachineState{
-    abstract State digit();
-    abstract State nonDigit();
-    abstract State plus();
+    State digit() {
+        return State.ERROR;
+    }
+    State nonDigit(){
+        return State.ERROR;
+    }
+    State plus(){
+        return State.ERROR;
+    }
 }
 
 class Q0 extends MachineState {
-    public State digit(){
-        return State.ERROR;
-    }
-    public State nonDigit(){
-        return State.ERROR;
-    }
     public State plus(){
         return State.q1;
     }
@@ -74,20 +74,11 @@ class Q3 extends MachineState {
     public State digit(){
         return State.q4;
     }
-    public State nonDigit(){
-        return State.ERROR;
-    }
-    public State plus(){
-        return State.ERROR;
-    }
 }
 
 class Q4 extends MachineState {
     public State digit(){
         return State.q4;
-    }
-    public State nonDigit(){
-        return State.ERROR;
     }
     public State plus(){
         return State.q1;
